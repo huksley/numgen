@@ -4,7 +4,7 @@ import { logger as log } from './logger'
 import { ejpot } from './jpot'
 
 /** Invoked on API Gateway call */
-export const getHandler = (
+export const getHandler = async (
   event: APIGatewayEvent,
   context: LambdaContext,
   callback: LambdaCallback,
@@ -23,9 +23,15 @@ export const getHandler = (
   log.info('Using payload', payload)
 
   try {
-    api.success({
-      eurojackpot: ejpot(),
-    })
+    return ejpot()
+      .then(
+        result =>
+          log.info('Result', result) &&
+          api.success({
+            eurojackpot: result,
+          }),
+      )
+      .catch(log.warn)
   } catch (err) {
     log.warn('Failed to process event', err)
     api.failure('Exception processing event: ' + err)
